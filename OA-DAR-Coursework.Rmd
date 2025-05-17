@@ -1,0 +1,289 @@
+---
+title: "DAR Coursework"
+Student Name: Oboni Anower
+Student ID: '13923163'
+output:
+  word_document: default
+  html_document: default
+  pdf_document: default
+header-includes:
+- \usepackage{multicol}
+- \usepackage{amsmath}
+- \usepackage{placeins}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#### 1. Statistical learning methods \hfill ($10\%$)\newline
+
+For each of parts (a) through (d), indicate whether we would generally expect the performance of a non-parametric statistical learning method to be better or worse than a parametric method. Justify your answer. 
+
+(a) The number of predictors $p$ is large, and the number of observations $n$ is small. ($2\%$)
+
+In this scenario, performance of non-parametric methods would generally be better than the parametric methods. 
+
+Non-parametric statistical learning methods, such as decision trees or k-nearest neighbours do not make definite assumptions about functional form of the relationship between predictors and the target variable. Instead, they are flexible because they learn patterns directly from the data and adapts itself when left unconstrained. 
+
+On the contrary, parametric methods assume that the relationship between predictors and targets maintain linear relationship. Since the Observation is small, this method can struggle accurately estimate the parameters for complex functions due to insufficient data and give large residuals. 
+
+
+(b) The sample size $n$ is large, and the number of predictors $p$ is also large. ($2\%$)
+
+When both the sample size and the number of predictors is large, the performance of non-parametric methods would be worse than parametric methods.
+
+With high-dimensional datasets, non-parametric methods can become computationally rigorous, which may also lead to overfitting. With too many predictors, the modelling will be unable to capture the underlying patterns in the data effectively, thus decreasing the performance. This is also known as the curse of dimensionality.
+
+Since parametric models assume the relationship between predictors and targets are linear, it can generate better explainable models in complex scenarios.
+
+
+(c) The sample size $n$ is small, and the relationship between the predictors and response is highly linear. ($3\%$)
+
+When sample size is small, but predictor-response relationship is highly linear, undoubtably non-parametric methods will underperform compared to parametric methods.
+
+With larger samples, non-parametric methods offer more robust estimates as they learn patterns directly from the relationships between predictors and responses. When the sample is smaller, methods have less observations available to accurately estimate the underlying relationships. Therefore, with smaller samples, non-parametric methods generate predictions with high variance. 
+
+Also, since there is small number of data available, the model will try to capture the noise in the data rather than the true underlying relationship. This causes overfitting, which can indeed create models that perform really well on the training dataset but perform poorly with new, unseen data, making the model less reliable. 
+
+For linear models, parametric methods can capture the actual relationship between predictors and their responses. This reduces prediction errors.
+
+
+(d) The standard deviation of the error terms, i.e. $\sigma = \textrm{sd}(\varepsilon)$, is extremely high. ($3\%$)
+
+Non-parametric methods will perform better than parametric for extremely high standard deviations. 
+
+Cases where the error terms have high standard deviations, it is suggested that the predictor-response relationship is mostly likely to be complex or non-linear. A non-parametric method can flexibly adapt to the training data by capturing the variability in the data, if left unconstrained (no specified functional form). But parametric is linear form, so it is constrained. 
+
+In some cases, a very high standard deviation may occur due to the presence of outliers in the data distributions. But non-parametric methods are more robust to these outliers because they aren’t influenced by data points that deviate from the normality. On the contrary, parametric methods are sensitive to outliers. 
+
+
+#### 2. Linear regression \hfill ($20\%$)\newline\newline
+
+This question involves the ```Auto``` dataset included in the “ISLR” package.
+
+(a) Use the ```lm()``` function to perform a simple linear regression with `acceleration` as the response and `cylinders` as the predictor. Use the
+```summary()``` function to print the results. Comment on the output. For example: 
+```{r}
+library(ISLR)
+data("Auto")
+
+# loads Auto datasets
+lm.fit <- lm(acceleration ~ cylinders, data = Auto)
+summary(lm.fit)
+```
+i. Is there a relationship between the predictor and the response? ($3\%$)
+
+The result in the summary suggests that there is a significant statistical relationship between the number of cylinders and acceleration. 
+
+Here, Pr(>|t|) is the P-value, that is <2e-16 meaning it is smaller than 0.05 (very close to zero, but not equal to zero). Thus it rejects null hypothesis, implying that there is an observable linear relationship between the predictor and response.
+
+Th RSE is 2.385, which suggests that any prediction on the observed acceleration values based on the number of cylinders would be off by 2.385 on average when the least squares line is used. 
+
+
+ii. How strong is the relationship between the predictor and the response? ($3\%$)
+
+R-squared value is 0.2547, which is closer to zero than 1. This means that only about 25% of the response's variance can be explained by the variation of predictor.Thus, the relationship is moderately strong.
+
+
+iii. Is the relationship between the predictor and the response positive or negative? ($3\%$)
+
+The predictor coefficient (cylinders) is  -0.8163. This Negative value suggests that for every additional cylinder in the added to the engine, the acceleration (response) is expected to decrease by 0.8163 units.
+
+iv. What is the predicted ```acceleration``` associated with an ```cylinders``` of 3.0? What are the associated 99% confidence and prediction intervals? ($3\%$)
+```{r}
+
+
+c_interval <- predict(lm.fit, data.frame(cylinders=(c(3.0))), interval = "confidence", level = 0.99)
+print(c_interval)
+
+p_interval <- predict(lm.fit, data.frame(cylinders=(c(3.0))), interval = "prediction", level = 0.99)
+print(p_interval)
+
+cat("\n","Predicted acceleration:", c_interval[1], "\n")
+cat("99% Confidence Interval: from ", c_interval[2], " to ", c_interval[3], "\n")
+cat("99% Prediction Interval: from ", p_interval[2], " to ", p_interval[3], "\n")
+```
+
+(b) Plot the response and the predictor. Use the ```abline()``` function to display the least squares regression line. ($3\%$)
+```{r}
+
+plot(Auto$cylinders, Auto$acceleration, 
+     xlab = "Cylinders", ylab = "Acceleration", 
+     main = "Scatterplot of Acceleration vs. Cylinders")
+
+# Add the least squares regression line
+abline(lm.fit, col = "blue")
+
+```
+
+
+(c) Plot the 99% confidence interval and prediction interval in the same plot as (b) using different colours and legends. ($5\%$)
+```{r}
+c_int <- predict(lm.fit, data.frame(cylinders =(Auto$cylinders)), interval = "confidence", level = 0.99)
+p_int <- predict(lm.fit, data.frame(cylinders = (Auto$cylinders)), interval = "prediction", level = 0.99)
+
+plot(Auto$cylinders, Auto$acceleration, 
+     xlab = "Cylinders", ylab = "Acceleration", 
+     main = "Scatterplot of Acceleration vs. Cylinders")
+
+# Add the least squares regression line
+abline(lm.fit, col = "blue")
+
+# Add the confidence interval to the plot
+lines(Auto$cylinders, c_int[,2], col = "red", type="b", pch="+")  
+lines(Auto$cylinders, c_int[,3], col = "red", type="b", pch="+")  
+
+# Add the prediction interval to the plot
+lines(Auto$cylinders, p_int[,2], col = "green", type="b", pch="*")  
+lines(Auto$cylinders, p_int[,3], col = "green", type="b", pch="*")  
+
+
+# Add legends
+legend("bottomright",
+pch=c("+","*"),
+col=c("red","green"),
+legend = c("confidence","prediction"))
+
+```
+
+
+#### 3. Bayesian networks and naïve Bayes classifiers.\hfill ($30\%$)
+
+
+
+a) Given a training dataset including 30 observations and a Bayesian network indicating the relationships between 3 features (i.e. Income, Student and Credit Rate) and the class attribute (i.e. Buy Computer), please create the conditional probability tables by hand. \hfill ($10\%$)
+
+
+
+b) Make predictions for 2 testing observations by using a Bayesian network classifier. \hfill ($5\%$)
+
+
+
+
+c) Based on the conditional independence assumption between features, please create the conditional probability tables by hand. \hfill ($10\%$)
+
+
+d) Make predictions for 2 testing observations by using a naïve Bayes classifier. \hfill ($5\%$)
+
+
+
+#### 4. Predicting wine quality by using support vector machine classification algorithm. \hfill ($40\%$)
+
+a) Download the full wine quality training and testing datasets from Moodle, and use the training dataset to find out the optimal value of hyperparameter C for a linear kernel-based svm. Define the value of the random seed equals 1 and cost = c(0.01, 1, 100). \hfill ($5\%$)
+```{r}
+
+#installs library for SVM and cross-validation
+library(e1071)
+
+# loads Training dataset
+# Converts predictor's categorical values to numerical values (1 for "Good" and -1 for "Bad")
+train_WineQuality <- read.table("C:/Users/anowe/OneDrive/Documents/WineQuality_Training.txt", header = TRUE, sep = ",")
+train_WineQuality$quality <- ifelse(train_WineQuality$quality == "Good", 1, -1)
+
+# hyperparameter tuning
+set.seed(1)
+cost_val <- c(0.01, 1, 1e2)
+tune.out <- tune(svm,
+                quality ~ .,
+                data = train_WineQuality,
+                kernel = "linear",
+                ranges = list(cost = cost_val),
+                )
+summary(tune.out)
+```
+b) Train a svm classifier by using the linear kernel and the corresponding optimal value of hyperparameter C, then make predictions on the testing dataset, report the classification accuracy. \hfill ($10\%$)
+```{r}
+
+# converts the target variable from categorical to numerical
+test_WineQuality <- read.table("C:/Users/anowe/OneDrive/Documents/WineQuality_Testing.txt", header = TRUE, sep = ",")
+test_WineQuality$quality <- ifelse(test_WineQuality$quality == "Good", 1, -1)
+
+# trains SVM model using full training dataset and Optimal value
+optimal_value_C1 <- 1
+svmfit.linear.C1 <- svm(quality ~ ., 
+                 data = train_WineQuality,
+                 type = "C-classification",
+                 kernel = "linear", 
+                 cost = optimal_value_C1
+                 )
+summary(svmfit.linear.C1)
+
+# makes predictions on the test dataset using trained SVM model
+# prints classification accuracy of predictions in %
+y.predict.linear.C1 <- predict(svmfit.linear.C1, newdata = test_WineQuality)
+accuracy_report <- mean(y.predict.linear.C1 == test_WineQuality$quality) * 100
+print(paste("CLASIFICATION ACCURACY REPORT: ", round(accuracy_report, 2), "%"))
+```
+c) Use the training dataset to find out the optimal values of hyperparameters C and for an RBF kernel-based svm. Define the value of the random seed equals 1, cost = c(0.01, 1, 100) and gamma=c(0.01, 1, 100). \hfill ($5\%$)
+```{r}
+
+# Set the random seed
+# Define the values of C and gamma to try
+set.seed(1)
+cost_v <- c(0.01, 1, 100)
+gamma_v <- c(0.01, 1, 100)
+
+# hyperparameter tuning using C and gamma
+tune.out_C_gamma <- tune(svm,
+                quality ~ .,
+                data = train_WineQuality,
+                kernel = "radial",
+                ranges = list(cost = cost_v, gamma = gamma_v)
+                )
+summary(tune.out_C_gamma)
+```
+d) Train a svm classifier by using the RBF kernel and the corresponding optimal values of hyperparameters C and gamma, then make predictions on the testing dataset, report the classification accuracy. \hfill ($10\%$)
+```{r}
+# trains SVM model using full training dataset and Optimal value
+optimal_C <- 100
+optimal_G <- 1
+svmfit.radial.C100G1 <- svm(quality ~ ., 
+                 data = train_WineQuality, 
+                 kernel = "radial", 
+                 type = "C-classification",
+                 cost = optimal_C,
+                 gamma = optimal_G,
+                 probability = TRUE
+                 )
+summary(svmfit.radial.C100G1)
+
+# makes predictions on the test dataset using trained SVM model
+# gets classification accuracy of predictions in %
+y.predict.radial.C100G1 <- predict(svmfit.radial.C100G1, newdata = test_WineQuality)
+accuracy_report2 <- mean(y.predict.radial.C100G1 == test_WineQuality$quality) * 100
+print(paste("CLASSIFICATION ACCURACY REPORT: ", round(accuracy_report2, 2), "%"))
+```
+e) Train a logistic regression model. Then use the testing dataset to conduct an ROC curve analysis to compare the predictive performance of the trained logistic regression model and those two svm classifiers trained by using linear and RBF kernels respectively. \hfill ($10\%$)
+```{r}
+library(ROCR)
+
+train_data = read.table("C:/Users/anowe/OneDrive/Documents/WineQuality_Testing.txt", header = TRUE, sep = ",")
+# Convert quality to binary
+train_data$quality <- ifelse(train_data$quality == "Good", 1, 0)
+
+# Train logistic regression model
+train.logit_model <- glm(quality ~ ., 
+                         data = train_data, 
+                         family = binomial,
+                         maxit = 1000
+                         )
+summary(train.logit_model)
+
+```
+```{r}
+library(ROCR)
+
+test_data = read.table("C:/Users/anowe/OneDrive/Documents/WineQuality_Testing.txt", header = TRUE, sep = ",")
+# Convert to binary classification (good vs. not good) for logistic regression
+test_data$quality <- ifelse(test_data$quality == "Good", 1, 0)
+# Check the structure of predicted_linear
+
+# Logistic Regression
+y.predict.logit <- predict(train.logit_model, newdata = test_data, type = "response")
+p_log <- prediction(y.predict.logit, test_data$quality)
+# ROC curve and AUC calculation for Logistic Regression
+perf_logit <- performance(p_log, "tpr", "fpr")
+auc_logit <- performance(p_log, "auc")
+
+```

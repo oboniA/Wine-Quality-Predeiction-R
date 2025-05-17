@@ -1,0 +1,123 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+#### 4. Predicting wine quality by using support vector machine classification algorithm. \hfill ($40\%$)
+
+a) Download the full wine quality training and testing datasets from Moodle, and use the training dataset to find out the optimal value of hyperparameter C for a linear kernel-based svm. Define the value of the random seed equals 1 and cost = c(0.01, 1, 100). \hfill ($5\%$)
+```{r}
+
+#installs library for SVM and cross-validation
+library(e1071)
+
+# loads Training dataset
+# Converts predictor's categorical values to numerical values (1 for "Good" and -1 for "Bad")
+train_WineQuality <- read.table("C:/Users/anowe/OneDrive/Documents/WineQuality_Training.txt", header = TRUE, sep = ",")
+train_WineQuality$quality <- ifelse(train_WineQuality$quality == "Good", 1, 0)
+
+# hyperparameter tuning
+set.seed(1)
+cost_val <- c(0.01, 1, 1e2)
+tune.out <- tune(svm,
+                quality ~ .,
+                data = train_WineQuality,
+                kernel = "linear",
+                ranges = list(cost = cost_val),
+                )
+summary(tune.out)
+```
+b) Train a svm classifier by using the linear kernel and the corresponding optimal value of hyperparameter C, then make predictions on the testing dataset, report the classification accuracy. \hfill ($10\%$)
+```{r}
+
+# converts the target variable from categorical to numerical
+test_WineQuality <- read.table("C:/Users/anowe/OneDrive/Documents/WineQuality_Testing.txt", header = TRUE, sep = ",")
+test_WineQuality$quality <- ifelse(test_WineQuality$quality == "Good", 1, 0)
+
+# trains SVM model using full training dataset and Optimal value
+optimal_value_C1 <- 1
+svmfit.linear.C1 <- svm(quality ~ ., 
+                 data = train_WineQuality,
+                 type = "C-classification",
+                 kernel = "linear", 
+                 cost = optimal_value_C1
+                 )
+summary(svmfit.linear.C1)
+
+# makes predictions on the test dataset using trained SVM model
+# prints classification accuracy of predictions in %
+y.predict.linear.C1 <- predict(svmfit.linear.C1, newdata = test_WineQuality)
+accuracy_report <- mean(y.predict.linear.C1 == test_WineQuality$quality) * 100
+print(paste("CLASIFICATION ACCURACY REPORT: ", round(accuracy_report, 2), "%"))
+```
+c) Use the training dataset to find out the optimal values of hyperparameters C and for an RBF kernel-based svm. Define the value of the random seed equals 1, cost = c(0.01, 1, 100) and gamma=c(0.01, 1, 100). \hfill ($5\%$)
+```{r}
+
+# Set the random seed
+# Define the values of C and gamma to try
+set.seed(1)
+cost_v <- c(0.01, 1, 100)
+gamma_v <- c(0.01, 1, 100)
+
+# hyperparameter tuning using C and gamma
+tune.out_C_gamma <- tune(svm,
+                quality ~ .,
+                data = train_WineQuality,
+                kernel = "radial",
+                ranges = list(cost = cost_v, gamma = gamma_v)
+                )
+summary(tune.out_C_gamma)
+```
+d) Train a svm classifier by using the RBF kernel and the corresponding optimal values of hyperparameters C and gamma, then make predictions on the testing dataset, report the classification accuracy. \hfill ($10\%$)
+```{r}
+# trains SVM model using full training dataset and Optimal value
+optimal_C <- 100
+optimal_G <- 1
+svmfit.radial.C100G1 <- svm(quality ~ ., 
+                 data = train_WineQuality, 
+                 kernel = "radial", 
+                 type = "C-classification",
+                 cost = optimal_C,
+                 gamma = optimal_G,
+                 probability = TRUE
+                 )
+summary(svmfit.radial.C100G1)
+
+# makes predictions on the test dataset using trained SVM model
+# gets classification accuracy of predictions in %
+y.predict.radial.C100G1 <- predict(svmfit.radial.C100G1, newdata = test_WineQuality)
+accuracy_report2 <- mean(y.predict.radial.C100G1 == test_WineQuality$quality) * 100
+print(paste("CLASSIFICATION ACCURACY REPORT: ", round(accuracy_report2, 2), "%"))
+```
+e) Train a logistic regression model. Then use the testing dataset to conduct an ROC curve analysis to compare the predictive performance of the trained logistic regression model and those two svm classifiers trained by using linear and RBF kernels respectively. \hfill ($10\%$)
+```{r}
+library(pROC)
+
+train.logit_model <- glm(quality ~ ., 
+                        data = train_WineQuality, 
+                        family = binomial
+)
+summary(train.logit_model)
+
+
+# Logistic Regression
+y.predict.logit <- predict(train.logit_model, newdata = test_WineQuality)
+
+str(test_WineQuality$quality)
+
+y.predict.linear.C1 <- as.numeric(y.predict.linear.C1)
+y.predict.radial.C100G1 <- as.numeric(y.predict.radial.C100G1)
+y.predict.logit <- as.numeric(y.predict.logit)
+
+library(pROC)
+roc_linear <- roc(test_WineQuality$quality, y.predict.linear.C1)
+roc_rbf <- roc(test_WineQuality$quality, y.predict.radial.C100G1)
+roc_logit <- roc(test_WineQuality$quality, y.predict.logit)
+plot(roc_linear, col = "red", main = "ROC Curve Comparison")
+plot(roc_rbf, col = "blue", add = TRUE)
+plot(roc_logit, col = "green", add = TRUE)
+legend("bottomright", legend = c("Linear SVM", "RBF SVM", "Logistic Regression"),
+       col = c("red", "blue", "green"), lty = 1)
+
+
+```
